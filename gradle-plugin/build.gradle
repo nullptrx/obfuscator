@@ -1,0 +1,27 @@
+plugins {
+    id 'groovy'
+    id 'kotlin'
+}
+
+kotlin {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    // compileOnly 'com.android.tools.build:gradle:7.0.0'
+    compileOnly 'com.android.tools.build:gradle:4.1.0'
+    implementation 'commons-io:commons-io:2.11.0'
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir 'src/main/kotlin'
+        }
+    }
+}
+
+apply from: "${rootProject.projectDir}/jitpack.gradle"

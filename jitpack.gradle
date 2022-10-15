@@ -1,0 +1,26 @@
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId GROUP
+            artifactId = ARTIFACTID
+            version VERSION
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,155 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+def isReleaseBuild() {
+    return VERSION.contains("SNAPSHOT") == false
+}
+
+def getReleaseRepositoryUrl() {
+    return hasProperty('NEXUS_RELEASE_REPOSITORY_URL') ? NEXUS_RELEASE_REPOSITORY_URL
+            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+}
+
+def getSnapshotRepositoryUrl() {
+    return hasProperty('NEXUS_SNAPSHOT_REPOSITORY_URL') ? NEXUS_SNAPSHOT_REPOSITORY_URL
+            : "https://oss.sonatype.org/content/repositories/snapshots/"
+}
+
+def getRepositoryUsername() {
+    def pFile = file("${rootDir}//local.properties")
+    Properties p = new Properties()
+    pFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    return p.getProperty('NEXUS_USERNAME')
+}
+
+def getRepositoryPassword() {
+    def pFile = file("${rootDir}//local.properties")
+    Properties p = new Properties()
+    pFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    return p.getProperty('NEXUS_PASSWORD')
+}
+
+def getSigningKeyId() {
+    def pFile = file("${rootDir}//local.properties")
+    Properties p = new Properties()
+    pFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    return p.getProperty('signing.keyId')
+}
+
+def getSigningKey() {
+    def pFile = file("${rootDir}//local.properties")
+    Properties p = new Properties()
+    pFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    return p.getProperty('signing.key')
+}
+
+def getSigningPassword() {
+    def pFile = file("${rootDir}//local.properties")
+    Properties p = new Properties()
+    pFile.withInputStream { stream ->
+        p.load(stream)
+    }
+    return p.getProperty('signing.password')
+}
+
+afterEvaluate { project ->
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = ARTIFACTID
+                from components.java
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    name = ARTIFACTID
+                    packaging = POM_PACKAGING
+                    description = POM_DESCRIPTION
+                    url = POM_URL
+
+                    scm {
+                        url = POM_URL
+                        connection = POM_SCM_CONNECTION
+                        developerConnection = POM_SCM_CONNECTION
+                    }
+
+                    licenses {
+                        license {
+                            name = POM_LICENCE_NAME
+                            url = POM_LICENCE_URL
+                            distribution = POM_LICENCE_DIST
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = POM_DEVELOPER_ID
+                            name = POM_DEVELOPER_NAME
+                        }
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                allowInsecureProtocol = true
+                //change URLs to point to your repos, e.g. http://my.org/repo
+                def releasesRepoUrl = getReleaseRepositoryUrl()
+                def snapshotsRepoUrl = getSnapshotRepositoryUrl()
+                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username getRepositoryUsername()
+                    password getRepositoryPassword()
+                }
+            }
+        }
+    }
+
+    // https://docs.gradle.org/current/userguide/signing_plugin.html#sec:publishing_the_signatures
+    signing {
+        required { gradle.taskGraph.hasTask("publish") }
+        // def signingKeyId = getSigningKeyId()
+        // def signingKey = getSigningKey()
+        // def signingPassword = getSigningPassword()
+        // useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        // sign publishing.publications.mavenJava
+        sign configurations.archives
+    }
+
+    javadoc {
+        if (JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        duplicatesStrategy = 'include'
+        classifier = 'javadoc'
+        from 'build/docs/javadoc'
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        duplicatesStrategy = 'include'
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+}
+

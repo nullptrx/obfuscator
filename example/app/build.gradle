@@ -1,0 +1,68 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        // maven {
+        //     allowInsecureProtocol true
+        //     url 'http://localhost:8081/repository/m2/'
+        // }
+        // maven {
+        //     url uri("${rootProject.projectDir}/maven")
+        // }
+
+    }
+    dependencies {
+        // classpath 'io.github.nullptrx.obfuscator:gradle-plugin:1.0.0'
+        // classpath 'io.github.nullptrx.obfuscator:xor:1.0.0'
+    }
+}
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+// apply plugin: 'obfuscator'
+// import io.github.nullptrx.obfuscator.kg.RandomKeyGenerator
+// obfuscator {
+//     str {
+//         packages = ["io.github.nullptrx.app"]
+//         implementation = 'io.github.nullptrx.obfuscator.XOR'
+//         // password = Class.forName('io.github.nullptrx.obfuscator.kg.RandomKeyGenerator').newInstance()
+//         // password = new RandomKeyGenerator()
+//         password = random(1)
+//         // password = hardcode('hi')
+//     }
+// }
+
+android {
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "io.github.nullptrx.app"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation project(':example:library')
+}
